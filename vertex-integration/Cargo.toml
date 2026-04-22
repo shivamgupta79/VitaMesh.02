@@ -1,0 +1,23 @@
+[package]
+name = "vitalswarm-vertex"
+version = "6.0.0"
+edition = "2021"
+
+[dependencies]
+anyhow = "1"
+chrono = { version = "0.4", features = ["serde"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tokio = { version = "1", features = ["macros", "rt-multi-thread", "time", "sync", "net"] }
+warp = "0.3"
+rand = "0.8"
+rumqttc = "0.24"
+futures-util = "0.3"
+
+[lib]
+name = "vitalswarm_vertex"
+crate-type = ["rlib"]
+
+[[bin]]
+name = "vertex_bridge"
+path = "src/main.rs"

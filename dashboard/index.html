@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>VitalSwarm &middot; Healthcare Swarm Dashboard v6</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+
+:root{--bg:#0b0f14;--s1:#111720;--s2:#161d27;--s3:#1c2535;--s4:#232e40;--text:#dce8f5;--muted:#7a8fa8;--border:rgba(255,255,255,.07);--accent:#00d4c8;--accent2:#0099ff;--accent3:#a78bfa;--danger:#ff3d5a;--warn:#f59e0b;--ok:#10b981;--r:14px;--rsm:8px;--font-mono:'JetBrains Mono',monospace;--shadow:0 8px 32px rgba(0,0,0,.35)}
+[data-theme="light"]{--bg:#f0f4f9;--s1:#ffffff;--s2:#f7f9fc;--s3:#edf1f7;--s4:#e2e8f0;--text:#1a2535;--muted:#64748b;--border:rgba(0,0,0,.08);--shadow:0 8px 32px rgba(0,0,0,.10)}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Inter,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;line-height:1.5}
+.wrap{max-width:1380px;margin:0 auto;padding:20px 24px}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:var(--rsm);border:none;font-size:13px;font-weight:600;cursor:pointer;transition:opacity .15s,transform .1s,box-shadow .15s;font-family:inherit}
+.btn:active{transform:scale(.97)}
+.btn-primary{background:var(--accent);color:#041214}
+.btn-primary:hover{opacity:.88;box-shadow:0 0 14px rgba(0,212,200,.35)}
+.btn-danger{background:var(--danger);color:#fff}
+.btn-danger:hover{opacity:.88;box-shadow:0 0 14px rgba(255,61,90,.35)}
+.btn-ghost{background:var(--s3);color:var(--text);border:1px solid var(--border)}
+.btn-ghost:hover{background:var(--s4)}
+.btn-sm{padding:5px 11px;font-size:12px}
+.badge{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;font-size:11px;font-weight:700;letter-spacing:.04em}
+.badge-ok{background:rgba(16,185,129,.12);color:var(--ok)}
+.badge-warn{background:rgba(245,158,11,.12);color:var(--warn)}
+.pulse{width:7px;height:7px;border-radius:50%;background:var(--ok);display:inline-block;animation:pulse 1.6s ease-in-out infinite}
+.pulse.warn{background:var(--warn)}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(1.4)}}
+
+.header{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:14px 20px;background:var(--s1);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100}
+.brand{display:flex;align-items:center;gap:12px}
+.brand-mark{width:38px;height:38px;border-radius:11px;background:linear-gradient(135deg,var(--accent),#0a7a74);display:grid;place-items:center;font-weight:800;font-size:13px;color:#041214;flex-shrink:0}
+.brand-name{font-size:17px;font-weight:700;letter-spacing:-.02em}
+.brand-sub{font-size:11px;color:var(--muted)}
+.header-spacer{flex:1}
+.header-ts{font-size:11px;color:var(--muted);font-family:var(--font-mono)}
+#alertBanner{display:none;align-items:center;gap:12px;padding:10px 20px;background:rgba(255,61,90,.1);border-bottom:1px solid rgba(255,61,90,.25);font-size:13px}
+#alertBanner.show{display:flex}
+#alertTitle{font-weight:700;color:var(--danger)}
+#alertDesc{color:var(--muted)}
+#alertBanner .btn-sm{margin-left:auto}
+#kpiStrip{display:flex;gap:1px;background:var(--border);border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:none}
+#kpiStrip::-webkit-scrollbar{display:none}
+.kpi{flex:1;min-width:110px;padding:14px 16px;background:var(--s1);position:relative;overflow:hidden}
+.kpi::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:var(--kc,var(--accent));opacity:.6}
+.kpi-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em}
+.kpi-value{font-size:22px;font-weight:700;margin:3px 0 1px;font-family:var(--font-mono)}
+.kpi-sub{font-size:10px;color:var(--muted)}
+.kpi-icon{position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:20px;opacity:.18}
+.tabs{display:flex;gap:2px;padding:0 24px;background:var(--s1);border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{padding:12px 18px;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;border:none;background:none;border-bottom:2px solid transparent;white-space:nowrap;transition:color .15s,border-color .15s;font-family:inherit}
+.tab:hover{color:var(--text)}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.tab-panel{display:none;padding:24px}
+.tab-panel.active{display:block}
+.card{background:var(--s2);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--shadow)}
+.card-hdr{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--border)}
+.card-title{font-size:13px;font-weight:700}
+.overview-grid{display:grid;grid-template-columns:1fr 340px;gap:18px}
+.left-col{display:flex;flex-direction:column;gap:18px}
+.right-col{display:flex;flex-direction:column;gap:18px}
+#swarmMap{width:100%;height:280px;display:block;border-radius:0 0 var(--r) var(--r)}
+#activityChart{width:100%;height:80px;display:block}
+
+.ring-wrap{display:flex;flex-direction:column;align-items:center;padding:20px 18px 14px}
+.ring-bg{fill:none;stroke:var(--s3);stroke-width:8}
+.ring-fill{fill:none;stroke:var(--accent);stroke-width:8;stroke-linecap:round;stroke-dasharray:263.9;stroke-dashoffset:263.9;transform:rotate(-90deg);transform-origin:50% 50%;transition:stroke-dashoffset .6s ease,stroke .4s}
+.ring-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.ring-pct{font-size:22px;font-weight:700;font-family:var(--font-mono)}
+.ring-lbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-top:2px}
+.cstat{text-align:center}
+.cstat-val{font-size:18px;font-weight:700;font-family:var(--font-mono)}
+.cstat-lbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.node-item{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:var(--rsm);background:var(--s3);border:1px solid transparent;transition:border-color .2s,background .2s}
+.node-item.alert{border-color:rgba(255,61,90,.3);background:rgba(255,61,90,.05)}
+.node-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.node-info{flex:1;min-width:0}
+.node-name{font-size:12px;font-weight:700;font-family:var(--font-mono)}
+.node-evt{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.node-meta{display:flex;flex-direction:column;align-items:flex-end;gap:5px}
+.role-pill{font-size:10px;font-weight:700;padding:2px 8px;border-radius:999px;text-transform:uppercase;letter-spacing:.05em}
+.role-wearable{background:rgba(0,212,200,.12);color:var(--accent)}
+.role-rover{background:rgba(245,158,11,.12);color:var(--warn)}
+.role-drone{background:rgba(16,185,129,.12);color:var(--ok)}
+.batt-bar{width:44px;height:5px;background:var(--s4);border-radius:3px;overflow:hidden}
+.batt-fill{height:100%;border-radius:3px;transition:width .4s}
+.remove-btn{background:none;border:none;color:var(--muted);cursor:pointer;font-size:13px;padding:2px 4px;border-radius:4px;flex-shrink:0;transition:color .15s,background .15s}
+.remove-btn:hover{color:var(--danger);background:rgba(255,61,90,.1)}
+.node-table-head{display:grid;grid-template-columns:1.6fr .8fr .7fr 1fr .6fr .6fr .9fr 36px;gap:8px;padding:8px 14px;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;border-bottom:1px solid var(--border)}
+.node-row{display:grid;grid-template-columns:1.6fr .8fr .7fr 1fr .6fr .6fr .9fr 36px;gap:8px;padding:10px 14px;align-items:center;border-bottom:1px solid var(--border);font-size:12px;transition:background .15s}
+.node-row:hover{background:var(--s3)}
+.node-row.alert{background:rgba(255,61,90,.04)}
+.node-id-cell{display:flex;align-items:center;gap:8px;font-family:var(--font-mono);font-size:12px}
+.status-cell{display:flex;align-items:center;gap:6px;font-size:12px}
+.online-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.batt-cell{display:flex;align-items:center;gap:6px}
+.batt-txt{font-size:11px;font-family:var(--font-mono);color:var(--muted)}
+#vitalsGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
+.vitals-card{background:var(--s2);border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+.vitals-card-hdr{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border)}
+.vitals-card-title{font-size:13px;font-weight:700}
+.vitals-stats{display:flex}
+.vstat{flex:1;padding:14px 12px;text-align:center;border-right:1px solid var(--border)}
+.vstat:last-child{border-right:none}
+.vstat-val{font-size:20px;font-weight:700;font-family:var(--font-mono)}
+.vstat-lbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-top:3px}
+.vitals-chart-wrap{padding:10px 12px 12px}
+.vitals-canvas{width:100%;height:80px;display:block}
+
+.event-list{display:flex;flex-direction:column;gap:4px;max-height:520px;overflow-y:auto}
+.event-item{display:flex;align-items:flex-start;gap:10px;padding:9px 12px;border-radius:var(--rsm);background:var(--s3);border:1px solid transparent;transition:border-color .2s}
+.event-item.critical{border-color:rgba(255,61,90,.2);background:rgba(255,61,90,.04)}
+.event-item.warn{border-color:rgba(245,158,11,.2);background:rgba(245,158,11,.03)}
+.event-item.hidden{display:none}
+.event-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:4px}
+.event-body{flex:1;min-width:0}
+.event-type{font-size:12px;font-weight:700;font-family:var(--font-mono)}
+.event-type.critical{color:var(--danger)}
+.event-type.warn{color:var(--warn)}
+.event-meta{font-size:11px;color:var(--muted);margin-top:2px}
+.event-time{font-size:10px;color:var(--muted);font-family:var(--font-mono);white-space:nowrap;flex-shrink:0}
+.filter-btn{padding:5px 12px;border-radius:999px;border:1px solid var(--border);background:var(--s3);color:var(--muted);font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;font-family:inherit}
+.filter-btn:hover{color:var(--text);border-color:var(--accent)}
+.filter-btn.active{background:var(--accent);color:#041214;border-color:var(--accent)}
+.scenario-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px}
+.scenario-card{background:var(--s2);border:1px solid var(--border);border-radius:var(--r);padding:20px;cursor:pointer;transition:border-color .2s,transform .15s,box-shadow .2s}
+.scenario-card:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,212,200,.1)}
+.scenario-card.active{border-color:var(--accent);background:rgba(0,212,200,.05)}
+.scenario-icon{font-size:28px;margin-bottom:10px}
+.scenario-name{font-size:14px;font-weight:700;margin-bottom:6px}
+.scenario-desc{font-size:12px;color:var(--muted);line-height:1.55}
+.manage-layout{display:grid;grid-template-columns:300px 1fr;gap:20px;align-items:start}
+.add-form{background:var(--s2);border:1px solid var(--border);border-radius:var(--r)}
+.add-form-body{padding:16px;display:flex;flex-direction:column;gap:12px}
+.form-field{display:flex;flex-direction:column;gap:5px}
+.form-field label{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.form-field input,.form-field select{padding:8px 12px;border-radius:var(--rsm);background:var(--s3);border:1px solid var(--border);color:var(--text);font-size:13px;font-family:inherit;transition:border-color .15s}
+.form-field input:focus,.form-field select:focus{outline:none;border-color:var(--accent)}
+.form-err{font-size:11px;color:var(--danger);min-height:16px}
+.node-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px}
+.node-card{background:var(--s2);border:1px solid var(--border);border-radius:var(--r);padding:14px;transition:border-color .2s}
+.node-card.alert-card{border-color:rgba(255,61,90,.3);background:rgba(255,61,90,.04)}
+.node-card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px}
+.node-card-icon{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;font-size:18px}
+.node-card-icon.wearable{background:rgba(0,212,200,.12)}
+.node-card-icon.rover{background:rgba(245,158,11,.12)}
+.node-card-icon.drone{background:rgba(16,185,129,.12)}
+.node-card-remove{background:none;border:none;color:var(--muted);cursor:pointer;font-size:13px;padding:3px 5px;border-radius:4px;transition:color .15s,background .15s}
+.node-card-remove:hover{color:var(--danger);background:rgba(255,61,90,.1)}
+.node-card-id{font-size:12px;font-weight:700;font-family:var(--font-mono);margin-bottom:2px}
+.node-card-role{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px}
+.node-card-stats{display:flex;gap:12px;margin-bottom:10px}
+.nc-stat{flex:1}
+.nc-stat-val{font-size:15px;font-weight:700;font-family:var(--font-mono)}
+.nc-stat-lbl{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.node-card-batt{margin-bottom:8px}
+.node-card-batt-label{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-bottom:4px}
+.node-card-batt-bar{height:4px;background:var(--s4);border-radius:2px;overflow:hidden}
+.node-card-batt-fill{height:100%;border-radius:2px;transition:width .4s}
+.node-card-status{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted)}
+.status-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+
+.incident-list{display:flex;flex-direction:column;gap:8px;max-height:600px;overflow-y:auto}
+.incident-card{background:var(--s2);border:1px solid var(--border);border-radius:var(--r);padding:16px}
+.incident-card.open{border-color:rgba(255,61,90,.3);background:rgba(255,61,90,.04)}
+.incident-card.responding{border-color:rgba(245,158,11,.3);background:rgba(245,158,11,.03)}
+.incident-card.resolved{border-color:rgba(16,185,129,.3);background:rgba(16,185,129,.03)}
+.inc-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.inc-id{font-size:13px;font-weight:700;font-family:var(--font-mono)}
+.inc-status{font-size:10px;font-weight:700;padding:3px 8px;border-radius:999px;text-transform:uppercase}
+.inc-status.open{background:rgba(255,61,90,.15);color:var(--danger)}
+.inc-status.responding{background:rgba(245,158,11,.15);color:var(--warn)}
+.inc-status.resolved{background:rgba(16,185,129,.15);color:var(--ok)}
+.inc-timeline{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:8px}
+.inc-step{background:var(--s3);border-radius:var(--rsm);padding:8px;text-align:center}
+.inc-step.done{background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.2)}
+.inc-step-label{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.inc-step-val{font-size:11px;font-weight:600;margin-top:3px;font-family:var(--font-mono)}
+.modal-overlay{display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.6);backdrop-filter:blur(4px);align-items:center;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal{background:var(--s2);border:1px solid var(--border);border-radius:var(--r);padding:24px;width:380px;max-width:95vw;box-shadow:0 24px 64px rgba(0,0,0,.5)}
+.modal-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.modal-title{font-size:16px;font-weight:700}
+.modal-close{background:none;border:none;color:var(--muted);cursor:pointer;font-size:18px;padding:2px 6px;border-radius:4px;transition:color .15s,background .15s}
+.modal-close:hover{color:var(--text);background:var(--s3)}
+.field{display:flex;flex-direction:column;gap:5px;margin-bottom:14px}
+.field label{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.field input,.field select{padding:9px 12px;border-radius:var(--rsm);background:var(--s3);border:1px solid var(--border);color:var(--text);font-size:13px;font-family:inherit;transition:border-color .15s}
+.field input:focus,.field select:focus{outline:none;border-color:var(--accent)}
+.form-err-modal{font-size:11px;color:var(--danger);min-height:16px;margin-bottom:8px}
+#toast{position:fixed;bottom:24px;right:24px;z-index:300;padding:10px 18px;border-radius:var(--rsm);font-size:13px;font-weight:600;background:var(--s3);color:var(--text);border:1px solid var(--border);box-shadow:0 8px 24px rgba(0,0,0,.3);transform:translateY(80px);opacity:0;transition:transform .25s ease,opacity .25s ease;pointer-events:none}
+#toast.show{transform:translateY(0);opacity:1}
+#toast.ok{background:rgba(16,185,129,.15);border-color:rgba(16,185,129,.3);color:var(--ok)}
+#toast.err{background:rgba(255,61,90,.15);border-color:rgba(255,61,90,.3);color:var(--danger)}
+@media(max-width:900px){.overview-grid{grid-template-columns:1fr}.manage-layout{grid-template-columns:1fr}.node-table-head,.node-row{grid-template-columns:1.4fr .7fr .7fr 1fr 36px}.node-table-head>*:nth-child(5),.node-table-head>*:nth-child(6),.node-row>*:nth-child(5),.node-row>*:nth-child(6){display:none}}
+@media(max-width:600px){.wrap{padding:16px}.tab{padding:10px 12px;font-size:12px}.inc-timeline{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+<header class="header">
+  <div class="brand">
+    <div class="brand-mark">VS</div>
+    <div><div class="brand-name">VitalSwarm</div><div class="brand-sub">Healthcare Swarm Dashboard</div></div>
+  </div>
+  <div class="header-spacer"></div>
+  <span id="meshBadge" class="badge badge-ok"><span class="pulse"></span>Mesh Active</span>
+  <span id="foxmqBadge" class="badge badge-warn"><span class="pulse warn"></span>FoxMQ</span>
+  <span class="header-ts">Updated: <span id="lastUpdate">&mdash;</span></span>
+  <button class="btn btn-ghost btn-sm" onclick="openTriggerModal()">&#9889; Trigger Event</button>
+  <button class="btn btn-ghost btn-sm" onclick="switchTab('manage')">&#128295; Manage Nodes</button>
+  <button class="btn btn-ghost btn-sm" id="btnTheme" onclick="toggleTheme()" title="Toggle theme">&#9728;&#65039;</button>
+</header>
+<div id="alertBanner">
+  <span id="alertTitle"></span>
+  <span id="alertDesc"></span>
+  <button class="btn btn-ghost btn-sm" onclick="dismissAlert()">Dismiss</button>
+</div>
+<div id="kpiStrip"></div>
+<nav class="tabs">
+  <button class="tab active" data-tab="overview"  onclick="switchTab('overview')">Overview</button>
+  <button class="tab"        data-tab="nodes"     onclick="switchTab('nodes')">Nodes</button>
+  <button class="tab"        data-tab="vitals"    onclick="switchTab('vitals')">Vitals</button>
+  <button class="tab"        data-tab="log"       onclick="switchTab('log')">Log</button>
+  <button class="tab"        data-tab="manage"    onclick="switchTab('manage')">Manage Nodes</button>
+  <button class="tab"        data-tab="scenarios" onclick="switchTab('scenarios')">Scenarios</button>
+  <button class="tab"        data-tab="incidents" onclick="switchTab('incidents')">Incidents</button>
+  <button class="tab"        data-tab="mesh"      onclick="switchTab('mesh')">&#128225; Mesh</button>
+</nav>
+<div class="wrap">
+
+<div id="tab-overview" class="tab-panel active">
+  <div class="overview-grid">
+    <div class="left-col">
+      <div class="card">
+        <div class="card-hdr">
+          <span class="card-title">&#128506; Swarm Map</span>
+          <span class="badge badge-ok" style="font-size:10px"><span class="pulse"></span>Live</span>
+        </div>
+        <canvas id="swarmMap"></canvas>
+      </div>
+      <div class="card">
+        <div class="card-hdr">
+          <span class="card-title">&#128200; Activity</span>
+          <span style="font-size:11px;color:var(--muted)">Last 30 polls</span>
+        </div>
+        <div style="padding:10px 12px 12px"><canvas id="activityChart"></canvas></div>
+      </div>
+    </div>
+    <div class="right-col">
+      <div class="card">
+        <div class="card-hdr"><span class="card-title">&#128499; Consensus</span></div>
+        <div class="ring-wrap">
+          <div style="position:relative;width:110px;height:110px">
+            <svg width="110" height="110" viewBox="0 0 110 110">
+              <circle class="ring-bg"   cx="55" cy="55" r="42"/>
+              <circle class="ring-fill" id="ringFill" cx="55" cy="55" r="42"/>
+            </svg>
+            <div class="ring-center">
+              <div class="ring-pct" id="ringPct">&mdash;</div>
+              <div class="ring-lbl">consensus</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:28px;margin-top:14px">
+            <div class="cstat"><div class="cstat-val" id="cVotes">&mdash;</div><div class="cstat-lbl">Votes</div></div>
+            <div class="cstat"><div class="cstat-val" id="cRequired">&mdash;</div><div class="cstat-lbl">Required</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="card" style="flex:1">
+        <div class="card-hdr">
+          <span class="card-title">&#128203; Node Roster</span>
+          <span id="rosterCount" style="font-size:11px;color:var(--muted)">0 nodes</span>
+        </div>
+        <div style="padding:10px;display:flex;flex-direction:column;gap:6px" id="nodeList"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="tab-nodes" class="tab-panel">
+  <div class="card">
+    <div class="card-hdr">
+      <span class="card-title">&#127760; Node Registry</span>
+      <button class="btn btn-ghost btn-sm" onclick="pull()">&#8635; Refresh</button>
+    </div>
+    <div class="node-table-head">
+      <div>Node ID</div><div>Role</div><div>Status</div><div>Battery</div><div>Events</div><div>Neighbors</div><div>Last Seen</div><div></div>
+    </div>
+    <div id="nodeTableBody"></div>
+  </div>
+</div>
+
+<div id="tab-vitals" class="tab-panel">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+    <h2 style="font-size:16px;font-weight:700">&#128147; Wearable Vitals</h2>
+    <button class="btn btn-ghost btn-sm" onclick="pull()">&#8635; Refresh</button>
+  </div>
+  <div id="vitalsGrid"></div>
+</div>
+
+<div id="tab-log" class="tab-panel">
+  <div class="card">
+    <div class="card-hdr">
+      <span class="card-title">&#128220; Event Log</span>
+      <span id="logCount" style="font-size:11px;color:var(--muted)">0 events</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;padding:12px 16px;border-bottom:1px solid var(--border);flex-wrap:wrap">
+      <button class="filter-btn active" data-filter="all"      onclick="setFilter('all')">All</button>
+      <button class="filter-btn"        data-filter="critical" onclick="setFilter('critical')">Critical</button>
+      <button class="filter-btn"        data-filter="warn"     onclick="setFilter('warn')">Warn</button>
+      <button class="filter-btn"        data-filter="normal"   onclick="setFilter('normal')">Normal</button>
+      <div style="flex:1"></div>
+      <button class="btn btn-ghost btn-sm" onclick="exportLog()">&#11015; Export CSV</button>
+      <button class="btn btn-danger btn-sm" onclick="clearLog()">&#128465; Clear</button>
+    </div>
+    <div style="padding:12px"><div class="event-list" id="eventLog"></div></div>
+  </div>
+</div>
+
+<div id="tab-manage" class="tab-panel">
+  <div class="manage-layout">
+    <div>
+      <div class="add-form">
+        <div class="card-hdr"><span class="card-title">&#10133; Add Node</span></div>
+        <div class="add-form-body">
+          <div class="form-field">
+            <label for="mnNodeId">Node ID</label>
+            <input id="mnNodeId" type="text" placeholder="e.g. wearable-04" autocomplete="off"/>
+          </div>
+          <div class="form-field">
+            <label for="mnRole">Role</label>
+            <select id="mnRole">
+              <option value="wearable">&#129658; Wearable</option>
+              <option value="rover">&#128663; Rover</option>
+              <option value="drone">&#128641; Drone</option>
+            </select>
+          </div>
+          <div class="form-err" id="mnErr"></div>
+          <button class="btn btn-primary" style="width:100%" onclick="mnAddNode()">Add to Swarm</button>
+        </div>
+      </div>
+      <div class="card" style="margin-top:14px;padding:14px">
+        <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px">Quick Add</div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <button class="btn btn-ghost" style="justify-content:flex-start;gap:10px" onclick="mnQuickAdd('wearable')"><span>&#129658;</span> Add Wearable</button>
+          <button class="btn btn-ghost" style="justify-content:flex-start;gap:10px" onclick="mnQuickAdd('rover')"><span>&#128663;</span> Add Rover</button>
+          <button class="btn btn-ghost" style="justify-content:flex-start;gap:10px" onclick="mnQuickAdd('drone')"><span>&#128641;</span> Add Drone</button>
+        </div>
+      </div>
+      <div style="margin-top:14px">
+        <button class="btn btn-danger" style="width:100%" onclick="mnRemoveAll()">&#128465; Remove All Nodes</button>
+      </div>
+    </div>
+    <div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+        <h2 style="font-size:15px;font-weight:700">Swarm Nodes</h2>
+        <span id="mnCount" style="font-size:12px;color:var(--muted)">0 nodes</span>
+      </div>
+      <div id="mnNodeCards" class="node-cards"></div>
+      <div id="mnEmpty" style="display:none;padding:40px;text-align:center;color:var(--muted);font-size:13px">No nodes in the swarm yet. Add one using the form.</div>
+    </div>
+  </div>
+</div>
+
+<div id="tab-scenarios" class="tab-panel">
+  <div style="margin-bottom:18px">
+    <h2 style="font-size:16px;font-weight:700;margin-bottom:4px">&#127916; Scenario Engine</h2>
+    <p style="font-size:13px;color:var(--muted)">Run pre-built emergency scenarios to test swarm coordination and response.</p>
+  </div>
+  <div id="scenarioGrid" class="scenario-grid"></div>
+</div>
+
+
+<div id="tab-mesh" class="tab-panel">
+  <div class="mesh-layout">
+    <div class="left-col">
+      <div class="card">
+        <div class="card-hdr">
+          <span class="card-title">&#128225; Mesh Topology</span>
+          <div style="display:flex;gap:10px;align-items:center">
+            <span style="font-size:11px;color:var(--muted)"><span style="color:var(--ok)">&#9632;</span> Strong &nbsp;<span style="color:var(--warn)">&#9632;</span> Weak &nbsp;<span style="color:var(--danger)">&#9632;</span> Poor</span>
+            <span class="badge badge-ok" style="font-size:10px"><span class="pulse"></span>Live</span>
+          </div>
+        </div>
+        <canvas id="meshCanvas"></canvas>
+      </div>
+      <div class="card">
+        <div class="card-hdr"><span class="card-title">&#128257; Recent Relay Paths</span><span id="relayCount" style="font-size:11px;color:var(--muted)">0 relays</span></div>
+        <div id="relayList" class="relay-list"></div>
+      </div>
+    </div>
+    <div class="right-col">
+      <div class="card">
+        <div class="card-hdr"><span class="card-title">&#128202; Mesh Statistics</span></div>
+        <div class="mesh-stats-grid">
+          <div class="mesh-stat"><div class="mesh-stat-val" id="msActiveLinks">&mdash;</div><div class="mesh-stat-lbl">Active Links</div></div>
+          <div class="mesh-stat"><div class="mesh-stat-val" id="msTotalLinks">&mdash;</div><div class="mesh-stat-lbl">Total Links</div></div>
+          <div class="mesh-stat"><div class="mesh-stat-val" id="msAvgRssi">&mdash;</div><div class="mesh-stat-lbl">Avg RSSI (dBm)</div></div>
+          <div class="mesh-stat"><div class="mesh-stat-val" id="msAvgLatency">&mdash;</div><div class="mesh-stat-lbl">Avg Latency (ms)</div></div>
+          <div class="mesh-stat"><div class="mesh-stat-val" id="msMeshHealth">&mdash;</div><div class="mesh-stat-lbl">Mesh Health</div></div>
+          <div class="mesh-stat"><div class="mesh-stat-val" id="msRelayCount">&mdash;</div><div class="mesh-stat-lbl">Total Relays</div></div>
+        </div>
+      </div>
+      <div class="card" style="flex:1">
+        <div class="card-hdr"><span class="card-title">&#128279; Link Details</span></div>
+        <div id="linkList" class="link-list"></div>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="tab-incidents" class="tab-panel">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+    <div>
+      <h2 style="font-size:16px;font-weight:700;margin-bottom:3px">&#128657; Incident Tracker</h2>
+      <p style="font-size:12px;color:var(--muted)">Real-time incident timeline with response status.</p>
+    </div>
+    <button class="btn btn-ghost btn-sm" onclick="pull()">&#8635; Refresh</button>
+  </div>
+  <div id="incidentList" class="incident-list">
+    <div class="incident-card open">
+      <div class="inc-header">
+        <span class="inc-id">INC-2024-001</span>
+        <span class="inc-status open">Open</span>
+      </div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:4px"><strong style="color:var(--text)">wearable-01</strong> &middot; CRITICAL_ALERT &middot; SpO&#8322; 89% &middot; Temp 38.7&deg;C</div>
+      <div class="inc-timeline">
+        <div class="inc-step done"><div class="inc-step-label">Detected</div><div class="inc-step-val">00:00:01</div></div>
+        <div class="inc-step done"><div class="inc-step-label">Dispatched</div><div class="inc-step-val">00:00:04</div></div>
+        <div class="inc-step"><div class="inc-step-label">En Route</div><div class="inc-step-val">&mdash;</div></div>
+        <div class="inc-step"><div class="inc-step-label">Resolved</div><div class="inc-step-val">&mdash;</div></div>
+      </div>
+    </div>
+    <div class="incident-card responding">
+      <div class="inc-header">
+        <span class="inc-id">INC-2024-002</span>
+        <span class="inc-status responding">Responding</span>
+      </div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:4px"><strong style="color:var(--text)">wearable-02</strong> &middot; CRITICAL_ALERT &middot; Low battery &middot; rover-02 dispatched</div>
+      <div class="inc-timeline">
+        <div class="inc-step done"><div class="inc-step-label">Detected</div><div class="inc-step-val">00:00:02</div></div>
+        <div class="inc-step done"><div class="inc-step-label">Dispatched</div><div class="inc-step-val">00:00:05</div></div>
+        <div class="inc-step done"><div class="inc-step-label">En Route</div><div class="inc-step-val">00:00:09</div></div>
+        <div class="inc-step"><div class="inc-step-label">Resolved</div><div class="inc-step-val">&mdash;</div></div>
+      </div>
+    </div>
+    <div class="incident-card resolved">
+      <div class="inc-header">
+        <span class="inc-id">INC-2024-003</span>
+        <span class="inc-status resolved">Resolved</span>
+      </div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:4px"><strong style="color:var(--text)">wearable-03</strong> &middot; PATH_BLOCKED &middot; rover-01 rerouted via drone mesh</div>
+      <div class="inc-timeline">
+        <div class="inc-step done"><div class="inc-step-label">Detected</div><div class="inc-step-val">00:00:01</div></div>
+        <div class="inc-step done"><div class="inc-step-label">Dispatched</div><div class="inc-step-val">00:00:03</div></div>
+        <div class="inc-step done"><div class="inc-step-label">En Route</div><div class="inc-step-val">00:00:07</div></div>
+        <div class="inc-step done"><div class="inc-step-label">Resolved</div><div class="inc-step-val">00:00:14</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<div id="triggerModal" class="modal-overlay" onclick="handleOverlay(event,'triggerModal')">
+  <div class="modal">
+    <div class="modal-hdr">
+      <span class="modal-title">&#9889; Trigger Event</span>
+      <button class="modal-close" onclick="closeModal('triggerModal')">&#10005;</button>
+    </div>
+    <div class="field">
+      <label for="triggerNodeId">Node</label>
+      <select id="triggerNodeId"></select>
+    </div>
+    <div class="field">
+      <label for="triggerEventType">Event Type</label>
+      <select id="triggerEventType">
+        <option value="CRITICAL_ALERT">CRITICAL_ALERT</option>
+        <option value="TASK_ACCEPTED">TASK_ACCEPTED</option>
+        <option value="ROVER_EN_ROUTE">ROVER_EN_ROUTE</option>
+        <option value="PATH_BLOCKED">PATH_BLOCKED</option>
+        <option value="DRONE_RELAY_ACTIVE">DRONE_RELAY_ACTIVE</option>
+        <option value="RESPONSE_COMPLETE">RESPONSE_COMPLETE</option>
+        <option value="VITALS_UPDATE">VITALS_UPDATE</option>
+        <option value="PREDICTIVE_ALERT">PREDICTIVE_ALERT</option>
+        <option value="LOW_BATTERY">LOW_BATTERY</option>
+      </select>
+    </div>
+    <div class="form-err-modal" id="triggerErr"></div>
+    <div style="display:flex;gap:10px;justify-content:flex-end">
+      <button class="btn btn-ghost" onclick="closeModal('triggerModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="submitTrigger()">Send Event</button>
+    </div>
+  </div>
+</div>
+<div id="toast"></div>
+<script src="./swarm_ws.js" defer></script>
+</body>
+</html>
+
+
